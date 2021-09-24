@@ -34,6 +34,10 @@ class Minefield:
         for i in self.playerfield:
             print(i)
 
+    def get_minefield(self):
+        for i in self.minefield:
+            print(i)
+
     def do_act(self, x, y, action):
         if action == 'F':
             self.set_flags(x, y)
@@ -52,7 +56,7 @@ class Minefield:
             raise ValueError
 
     def check_cell(self, x, y):
-        if self.playerfield[x][y].isdigit() == False and self.minefield[x][y] != 'C':
+        if not self.playerfield[x][y].isdigit() and self.minefield[x][y] != 'C':
             if x == 0 and y == 0:
                 return self.check_corner_ul(x, y)
             if x == 0 and y == self.size[1] - 1:
@@ -79,22 +83,22 @@ class Minefield:
         if self.minefield[x + 1][y] == '*':
             bombs_near += 1
         elif self.minefield[x + 1][y] == 'O':
-            self.minefield[x + 1][y] = 'C'
             self.check_cell(x + 1, y)
+            self.minefield[x + 1][y] = 'C'
 
         if self.minefield[x][y + 1] == '*':
             bombs_near += 1
         elif self.minefield[x][y + 1] == 'O':
-            self.minefield[x][y + 1] = 'C'
             self.check_cell(x, y + 1)
+            self.minefield[x][y + 1] = 'C'
 
         if self.minefield[x + 1][y + 1] == '*':
             bombs_near += 1
         elif self.minefield[x + 1][y + 1] == 'O':
-            self.minefield[x + 1][y + 1] = 'C'
             self.check_cell(x + 1, y + 1)
+            self.minefield[x + 1][y + 1] = 'C'
 
-            self.playerfield[x][y] = bombs_near
+        self.playerfield[x][y] = bombs_near
 
     def check_corner_ur(self, x, y):
         bombs_near = 0
@@ -374,7 +378,7 @@ class Game:
             return self.load_game()
 
     def new_game(self):
-        command = input('Выберите размер поля: \n1. Стандарт \n2. Задать свои размеры ' \
+        command = input('Выберите размер поля: \n1. Стандарт \n2. Задать свои размеры '
                         'и количество бомб \n')
 
         if command == '1':
@@ -387,11 +391,10 @@ class Game:
 
             self.minefield = Minefield((line, column), bombs)
             self.minefield.set_bombs()
-        print('Игра началась! Вводите свои ходы в формате "X,Y,F/O", \n' \
-              'где X - строка, Y - столбец, F - поставить флаг в ячейку или убрать его, \n' \
-              'O - открыть ячейку. В любой момент можно написать "Меню", где можно \n' \
+        print('Игра началась! Вводите свои ходы в формате "X,Y,F/O", \n'
+              'где X - строка, Y - столбец, F - поставить флаг в ячейку или убрать его, \n'
+              'O - открыть ячейку. В любой момент можно написать "Меню", где можно \n'
               'сохранить, загрузить или начать новую игру! Удачи!')
-        print(self.minefield.minefield)
         return self.action()
 
     def load_game(self):
@@ -404,6 +407,9 @@ class Game:
         try:
             while self.is_win(self.minefield.minefield) != 0:
                 self.minefield.get_playerfield()
+
+                self.minefield.get_minefield()  # delete
+
                 action = input('Ваш ход: ')
                 if action == 'Меню':
                     return self.menu()
