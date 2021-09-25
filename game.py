@@ -20,7 +20,7 @@ class Minefield:
         neighbors = []
         for delta_1 in [-1, 0, 1]:
             for delta_2 in [-1, 0, 1]:
-                x_new, y_new = x + delta_1,  + delta_2
+                x_new, y_new = x + delta_1, y + delta_2
                 if 0 <= x_new <= self.size[0] - 1 and 0 <= y_new <= self.size[1] - 1 and (not delta_1 == delta_2 == 0):
                     neighbors.append(self.minefield[x_new][y_new])
         return neighbors
@@ -85,7 +85,7 @@ class Minefield:
         if action == Action.FLAG:
             self.set_flags(x, y)
 
-        elif action == Action.OPEN and self.minefield[x][y] == '💥':
+        elif action == Action.OPEN and self.minefield[x][y] == '💣':
             return Game().lose_game()
 
         elif self.minefield[x][y].isdigit() or self.minefield[x][y] == Action.FLAG:
@@ -153,8 +153,7 @@ class Game:
             number_of_save = max([int(save[4]) for save in filter(lambda x: x[:4] == "save", os.listdir())]) + 1
         else:
             number_of_save = 1
-        with open(f'save{number_of_save}.pkl',
-                  'wb') as save:
+        with open(f'save{number_of_save}.pkl', 'wb') as save:
             pickle.dump(self.minefield, save)
             print(UserText.GAME_SAVED)
             return self.menu()
@@ -170,6 +169,7 @@ class Game:
         self.minefield.set_bombs(X - 1, Y - 1)
         self.minefield.bombs_generated = True
         self.minefield.do_act(X - 1, Y - 1, Action)
+        self.minefield.get_playing_field()
 
         return self.action()
 
@@ -177,7 +177,6 @@ class Game:
         try:
             while self.is_win(self.minefield.playing_field) != 0:
 
-                self.minefield.get_playing_field()
                 self.minefield.get_minefield()
 
                 action = self.handler_message(input(UserText.ENTER_MOVE), Context.PLAYER_TURN)
@@ -185,6 +184,7 @@ class Game:
                     return self.menu()
                 X, Y, Action = action
                 self.minefield.do_act(X - 1, Y - 1, Action)
+                self.minefield.get_playing_field()
 
             return self.win_game()
 

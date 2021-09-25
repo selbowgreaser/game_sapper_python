@@ -1,21 +1,23 @@
-class Start:
+from typing import NamedTuple
+
+class Start(NamedTuple):
     START_NEW_GAME = '1'
     LOAD_GAME = '2'
     EXIT = '3'
 
 
-class FieldSize:
+class FieldSize(NamedTuple):
     STANDARD = '1'
     CUSTOM = '2'
     BACK = '3'
 
 
-class Action:
+class Action(NamedTuple):
     OPEN = 'O'
     FLAG = 'F'
 
 
-class Menu:
+class Menu(NamedTuple):
     MENU = 'Меню'
     CONTINUE = '1'
     SAVE_GAME = '2'
@@ -24,7 +26,7 @@ class Menu:
     EXIT = '5'
 
 
-class Context:
+class Context(NamedTuple):
     START_MENU = 'START MENU'
     SELECT_FIELD = 'SELECT FIELD'
     CHOOSE_SIZES = 'CHOOSE SIZES'
@@ -33,7 +35,7 @@ class Context:
     SELECT_SAVE = 'SELECT SAVE'
 
 
-class UserText:
+class UserText(NamedTuple):
     WELCOME = 'Добро пожаловать в консольную игру "Сапер"!'
     SELECT_FIELD = 'Выберите размер поля: \n1. Стандарт \n2. Задать свои размеры ' \
                    'и количество бомб \n3. Назад\n'
