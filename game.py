@@ -177,8 +177,6 @@ class Game:
         try:
             while self.is_win(self.minefield.playing_field) != 0:
 
-                self.minefield.get_minefield()
-
                 action = self.handler_message(input(UserText.ENTER_MOVE), Context.PLAYER_TURN)
                 if action == Menu.MENU:
                     return self.menu()
@@ -265,6 +263,3 @@ class Game:
 
                 except ValueError:
                     string = input(UserText.ERROR)
-
-
-
