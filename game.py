@@ -15,114 +15,22 @@ class Minefield:
 
     def gen_neighbors(self, x, y):
         neighbors = []
-        if x == 0 and y == 0:
-            neighbors.append(self.minefield[x + 1][y])
-            neighbors.append(self.minefield[x][y + 1])
-            neighbors.append(self.minefield[x + 1][y + 1])
-        elif x == 0 and y == self.size[1] - 1:
-            neighbors.append(self.minefield[x + 1][y])
-            neighbors.append(self.minefield[x + 1][y - 1])
-            neighbors.append(self.minefield[x][y - 1])
-        elif x == self.size[0] - 1 and y == 0:
-            neighbors.append(self.minefield[x - 1][y])
-            neighbors.append(self.minefield[x][y + 1])
-            neighbors.append(self.minefield[x - 1][y + 1])
-        elif x == self.size[0] - 1 and y == self.size[1] - 1:
-            neighbors.append(self.minefield[x - 1][y])
-            neighbors.append(self.minefield[x - 1][y - 1])
-            neighbors.append(self.minefield[x][y - 1])
-
-        elif x == 0:
-            neighbors.append(self.minefield[x][y - 1])
-            neighbors.append(self.minefield[x + 1][y - 1])
-            neighbors.append(self.minefield[x + 1][y])
-            neighbors.append(self.minefield[x + 1][y + 1])
-            neighbors.append(self.minefield[x][y + 1])
-        elif x == self.size[0] - 1:
-            neighbors.append(self.minefield[x][y - 1])
-            neighbors.append(self.minefield[x - 1][y - 1])
-            neighbors.append(self.minefield[x - 1][y])
-            neighbors.append(self.minefield[x - 1][y + 1])
-            neighbors.append(self.minefield[x][y + 1])
-        elif y == 0:
-            neighbors.append(self.minefield[x - 1][y])
-            neighbors.append(self.minefield[x - 1][y + 1])
-            neighbors.append(self.minefield[x][y + 1])
-            neighbors.append(self.minefield[x + 1][y + 1])
-            neighbors.append(self.minefield[x + 1][y])
-        elif y == self.size[1] - 1:
-            neighbors.append(self.minefield[x - 1][y])
-            neighbors.append(self.minefield[x - 1][y - 1])
-            neighbors.append(self.minefield[x][y - 1])
-            neighbors.append(self.minefield[x + 1][y - 1])
-            neighbors.append(self.minefield[x + 1][y])
-
-        else:
-            neighbors.append(self.minefield[x - 1][y - 1])
-            neighbors.append(self.minefield[x - 1][y])
-            neighbors.append(self.minefield[x - 1][y + 1])
-            neighbors.append(self.minefield[x][y + 1])
-            neighbors.append(self.minefield[x + 1][y + 1])
-            neighbors.append(self.minefield[x + 1][y])
-            neighbors.append(self.minefield[x + 1][y - 1])
-            neighbors.append(self.minefield[x][y - 1])
-
+        for delta_1 in [-1, 0, 1]:
+            for delta_2 in [-1, 0, 1]:
+                x_new = x + delta_1
+                y_new = y + delta_2
+                if 0 <= x_new <= self.size[0] - 1 and 0 <= y_new <= self.size[1] - 1 and (not delta_1 == delta_2 == 0):
+                    neighbors.append(self.minefield[x_new][y_new])
         return neighbors
 
     def gen_coord_neighbors(self, x, y):
         coord_neighbors = []
-        if x == 0 and y == 0:
-            coord_neighbors.append([x + 1, y])
-            coord_neighbors.append([x, y + 1])
-            coord_neighbors.append([x + 1, y + 1])
-        elif x == 0 and y == self.size[1] - 1:
-            coord_neighbors.append([x + 1, y])
-            coord_neighbors.append([x + 1, y - 1])
-            coord_neighbors.append([x, y - 1])
-        elif x == self.size[0] - 1 and y == 0:
-            coord_neighbors.append([x - 1, y])
-            coord_neighbors.append([x, y + 1])
-            coord_neighbors.append([x - 1, y + 1])
-        elif x == self.size[0] - 1 and y == self.size[1] - 1:
-            coord_neighbors.append([x - 1, y])
-            coord_neighbors.append([x - 1, y - 1])
-            coord_neighbors.append([x, y - 1])
-
-        elif x == 0:
-            coord_neighbors.append([x, y - 1])
-            coord_neighbors.append([x + 1, y - 1])
-            coord_neighbors.append([x + 1, y])
-            coord_neighbors.append([x + 1, y + 1])
-            coord_neighbors.append([x, y + 1])
-        elif x == self.size[0] - 1:
-            coord_neighbors.append([x, y - 1])
-            coord_neighbors.append([x - 1, y - 1])
-            coord_neighbors.append([x - 1, y])
-            coord_neighbors.append([x - 1, y + 1])
-            coord_neighbors.append([x, y + 1])
-        elif y == 0:
-            coord_neighbors.append([x - 1, y])
-            coord_neighbors.append([x - 1, y + 1])
-            coord_neighbors.append([x, y + 1])
-            coord_neighbors.append([x + 1, y + 1])
-            coord_neighbors.append([x + 1, y])
-        elif y == self.size[1] - 1:
-            coord_neighbors.append([x - 1, y])
-            coord_neighbors.append([x - 1, y - 1])
-            coord_neighbors.append([x, y - 1])
-            coord_neighbors.append([x + 1, y - 1])
-            coord_neighbors.append([x + 1, y])
-
-        else:
-            coord_neighbors.append([x - 1, y - 1])
-            coord_neighbors.append([x - 1, y])
-            coord_neighbors.append([x - 1, y + 1])
-            coord_neighbors.append([x, y + 1])
-            coord_neighbors.append([x + 1, y + 1])
-            coord_neighbors.append([x + 1, y])
-            coord_neighbors.append([x + 1, y - 1])
-            coord_neighbors.append([x, y - 1])
-
+        for delta_1 in [-1, 0, 1]:
+            for delta_2 in [-1, 0, 1]:
+                x_new = x + delta_1
+                y_new = y + delta_2
+                if 0 <= x_new <= self.size[0] - 1 and 0 <= y_new <= self.size[1] - 1 and (not delta_1 == delta_2 == 0):
+                    coord_neighbors.append([x_new, y_new])
         return coord_neighbors
 
     def check_neighbors(self, x, y):
