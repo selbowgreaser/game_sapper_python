@@ -7,8 +7,8 @@ class Minefield:
     def __init__(self, size, bombs):
         self.size = size
         self.bombs = bombs
-        self.minefield = [['O' for _ in range(self.size[1])] for _ in range(self.size[0])]
-        self.playerfield = [['O' for _ in self.minefield[0]] for _ in self.minefield]
+        self.minefield = [[' ' for _ in range(self.size[1])] for _ in range(self.size[0])]
+        self.playing_field = [[' ' for _ in self.minefield[0]] for _ in self.minefield]
         self.flags = bombs
         self.queue_coord = deque()
         print('Поле успешно сгенерировано!')
@@ -128,9 +128,9 @@ class Minefield:
     def check_neighbors(self, x, y):
         neighbors = self.gen_neighbors(x, y)
         if '*' in neighbors:
-            self.playerfield[x][y] = neighbors.count('*')
+            self.playing_field[x][y] = neighbors.count('*')
         else:
-            self.playerfield[x][y] = 0
+            self.playing_field[x][y] = 0
             coord_neighbors = self.gen_coord_neighbors(x, y)
             self.queue_coord += deque(coord_neighbors)
 
@@ -147,17 +147,20 @@ class Minefield:
         self.get_minefield()
 
     def set_flags(self, x, y):
-        if self.playerfield[x][y] == 'F':
-            self.playerfield[x][y] = 'O'
-        elif self.playerfield[x][y] == 'O':
-            self.playerfield[x][y] = 'F'
+        if self.playing_field[x][y] == 'F':
+            self.playing_field[x][y] = ' '
+        elif self.playing_field[x][y] == ' ':
+            self.playing_field[x][y] = 'F'
         else:
             print('Нельзя поставить флаг в эту клетку')
 
-    def get_playerfield(self):
-        print('ПОЛЕ ИГРОКА')
-        for i in self.playerfield:
-            print(i)
+    def get_playing_field(self):
+        print('ПОЛЕ ИГРОКА', end='')
+        for line in self.playing_field:
+            print(f'\n-{"----" * len(line)}\n| ', end='')
+            for cell in line:
+                print(cell, sep=' | ', end=' | ')
+        print()
 
     def get_minefield(self):
         print('МИННОЕ ПОЛЕ')
@@ -179,10 +182,10 @@ class Minefield:
             print(self.queue_coord)
             while self.queue_coord:
                 x, y = self.queue_coord.popleft()
-                if self.playerfield[x][y] == 'O':
+                if self.playing_field[x][y] == ' ':
                     self.check_neighbors(x, y)
                     print(self.queue_coord)
-                    print(self.get_playerfield())
+                    print(self.get_playing_field())
 
         else:
             raise ValueError
@@ -228,16 +231,16 @@ class Game:
 
     def first_step(self):
         try:
-            self.minefield.get_playerfield()
+            self.minefield.get_playing_field()
 
             action = input('Ваш ход: ')
             if action == 'Меню':
                 return self.menu()
             X, Y, Action = action.split(',')
             X, Y = int(X), int(Y)
-            if 0 <= X <= self.minefield.size[0] and 0 <= Y <= self.minefield.size[1]:
-                self.minefield.set_bombs(X, Y)
-                self.minefield.do_act(X, Y, Action)
+            if 1 <= X <= self.minefield.size[0] and 1 <= Y <= self.minefield.size[1]:
+                self.minefield.set_bombs(X - 1, Y - 1)
+                self.minefield.do_act(X - 1, Y - 1, Action)
             else:
                 print('Вы ввели не корректное значение. Попробуйте снова.')
                 return self.first_step()
@@ -249,8 +252,8 @@ class Game:
 
     def action(self):
         try:
-            while self.is_win(self.minefield.playerfield) != 0:
-                self.minefield.get_playerfield()
+            while self.is_win(self.minefield.playing_field) != 0:
+                self.minefield.get_playing_field()
                 print()
                 self.minefield.get_minefield()
 
@@ -259,8 +262,8 @@ class Game:
                     return self.menu()
                 X, Y, Action = action.split(',')
                 X, Y = int(X), int(Y)
-                if 0 <= X <= self.minefield.size[0] and 0 <= Y <= self.minefield.size[1]:
-                    self.minefield.do_act(X, Y, Action)
+                if 1 <= X <= self.minefield.size[0] and 1 <= Y <= self.minefield.size[1]:
+                    self.minefield.do_act(X - 1, Y - 1, Action)
                 else:
                     print('Вы ввели не корректное значение. Попробуйте снова.')
                     return self.action()
