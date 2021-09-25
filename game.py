@@ -1,6 +1,9 @@
+import os
+import pickle
 import random as rand
 from collections import deque
-import pickle
+
+from config import *
 
 
 class Minefield:
@@ -9,16 +12,15 @@ class Minefield:
         self.bombs = bombs
         self.minefield = [[' ' for _ in range(self.size[1])] for _ in range(self.size[0])]
         self.playing_field = [['■' for _ in self.minefield[0]] for _ in self.minefield]
-        self.flags = bombs
         self.queue_coord = deque()
-        print('Поле успешно сгенерировано!')
+        self.bombs_generated = False
+        self.flags = 0
 
     def gen_neighbors(self, x, y):
         neighbors = []
         for delta_1 in [-1, 0, 1]:
             for delta_2 in [-1, 0, 1]:
-                x_new = x + delta_1
-                y_new = y + delta_2
+                x_new, y_new = x + delta_1,  + delta_2
                 if 0 <= x_new <= self.size[0] - 1 and 0 <= y_new <= self.size[1] - 1 and (not delta_1 == delta_2 == 0):
                     neighbors.append(self.minefield[x_new][y_new])
         return neighbors
@@ -35,8 +37,8 @@ class Minefield:
 
     def check_neighbors(self, x, y):
         neighbors = self.gen_neighbors(x, y)
-        if '*' in neighbors:
-            self.playing_field[x][y] = neighbors.count('*')
+        if '💣' in neighbors:
+            self.playing_field[x][y] = neighbors.count('💣')
         else:
             self.playing_field[x][y] = ' '
             coord_neighbors = self.gen_coord_neighbors(x, y)
@@ -47,56 +49,54 @@ class Minefield:
             while True:
                 x = rand.randint(0, self.size[0] - 1)
                 y = rand.randint(0, self.size[1] - 1)
-                if self.minefield[x][y] == '*' or (x == X and y == Y) or [x, y] in self.gen_coord_neighbors(X, Y):
+                if self.minefield[x][y] == '💣' or (x == X and y == Y) or [x, y] in self.gen_coord_neighbors(X, Y):
                     continue
-                self.minefield[x][y] = '*'
+                self.minefield[x][y] = '💣'
                 break
-        print('Бомбы установлены!')
         self.get_minefield()
 
     def set_flags(self, x, y):
         if self.playing_field[x][y] == 'F':
             self.playing_field[x][y] = '■'
+            self.flags -= 1
         elif self.playing_field[x][y] == '■':
             self.playing_field[x][y] = 'F'
+            self.flags += 1
         else:
-            print('Нельзя поставить флаг в эту клетку')
+            print(UserText.CANNOT_FLAG)
 
     def get_playing_field(self):
-        print('ПОЛЕ ИГРОКА', end='')
+        print(f'МИН НА ПОЛЕ: {self.bombs}', end='')
         for line in self.playing_field:
             print(f'\n-{"----" * len(line)}\n| ', end='')
             for cell in line:
                 print(cell, sep=' | ', end=' | ')
-        print()
+        print(f'\n-{"----" * len(line)}')
 
     def get_minefield(self):
-        print('МИННОЕ ПОЛЕ')
-        for i in self.minefield:
-            print(i)
+        print('МИННОЕ ПОЛЕ', end='')
+        for line in self.minefield:
+            print(f'\n-{"----" * len(line)}\n| ', end='')
+            for cell in line:
+                print(cell, sep=' | ', end=' | ')
+        print(f'\n-{"----" * len(line)}')
 
     def do_act(self, x, y, action):
-        if action == 'F':
+        if action == Action.FLAG:
             self.set_flags(x, y)
 
-        elif action == 'O' and self.minefield[x][y] == '*':
+        elif action == Action.OPEN and self.minefield[x][y] == '💥':
             return Game().lose_game()
 
-        elif self.minefield[x][y].isdigit() or self.minefield[x][y] == 'F':
+        elif self.minefield[x][y].isdigit() or self.minefield[x][y] == Action.FLAG:
             raise ValueError
 
-        elif action == 'O':
+        elif action == Action.OPEN:
             self.queue_coord.append([x, y])
-            print(self.queue_coord)
             while self.queue_coord:
                 x, y = self.queue_coord.popleft()
                 if self.playing_field[x][y] == '■':
                     self.check_neighbors(x, y)
-                    print(self.queue_coord)
-                    print(self.get_playing_field())
-
-        else:
-            raise ValueError
 
 
 class Game:
@@ -105,106 +105,166 @@ class Game:
         self.isPlay = True
 
     def start(self):
-        print('Добро пожаловать в консольную игру "Сапер"!')
-        command = input('Выберите действие: \n1. Новая игра \n2. Загрузить игру \n')
+        print(UserText.WELCOME)
 
-        if command == '1':
+        command = self.handler_message(input(UserText.HOW_START_GAME), Context.START_MENU)
+        if command == Start.START_NEW_GAME:
             return self.new_game()
-        elif command == '2':
+        if command == Start.LOAD_GAME:
             return self.load_game()
+        if command == Start.EXIT:
+            return exit()
 
     def new_game(self):
-        command = input('Выберите размер поля: \n1. Стандарт \n2. Задать свои размеры '
-                        'и количество бомб \n')
+        command = self.handler_message(input(UserText.SELECT_FIELD), Context.SELECT_FIELD)
 
-        if command == '1':
+        if command == FieldSize.STANDARD:
             self.minefield = Minefield((5, 5), rand.randint(2, 5))
-        elif command == '2':
-            line = int(input('Введите размер поля по вертикали: '))
-            column = int(input('Введите размер поля по горизонтали: '))
-            bombs = int(input('Введите количество бомб: '))
-
+        elif command == FieldSize.CUSTOM:
+            line, column, bombs = self.handler_message(input(UserText.CHOOSE_SIZES), Context.CHOOSE_SIZES)
             self.minefield = Minefield((line, column), bombs)
-        print('Игра началась! Вводите свои ходы в формате "X,Y,F/O", \n'
-              'где X - строка, Y - столбец, F - поставить флаг в ячейку или убрать его, \n'
-              'O - открыть ячейку. В любой момент можно написать "Меню", где можно \n'
-              'сохранить, загрузить или начать новую игру! Удачи!')
-        return self.first_step()
+        elif command == FieldSize.BACK:
+            return self.start()
+
+        print(UserText.START_GAME)
+        return self.first_action()
 
     def load_game(self):
-        pass
+        if not list(filter(lambda x: x[:4] == "save", os.listdir())):
+            print(UserText.NO_SAVE)
+            if self.minefield is None:
+                print(UserText.WILL_BE_CREATED)
+                self.new_game()
+            else:
+                self.action()
+        print(UserText.SELECT_SAVE)
+        for save in filter(lambda x: x[:4] == "save", os.listdir()):
+            print(save)
+        with open(f'save{self.handler_message(input(), Context.SELECT_SAVE)}.pkl', 'rb') as save:
+            try:
+                self.minefield = pickle.load(save)
+                return self.action()
+            except:
+                print(UserText.ERROR)
+                return self.load_game()
 
     def save_game(self):
-        pass
+        if len(list(filter(lambda x: x[:4] == "save", os.listdir()))):
+            number_of_save = max([int(save[4]) for save in filter(lambda x: x[:4] == "save", os.listdir())]) + 1
+        else:
+            number_of_save = 1
+        with open(f'save{number_of_save}.pkl',
+                  'wb') as save:
+            pickle.dump(self.minefield, save)
+            print(UserText.GAME_SAVED)
+            return self.menu()
 
-    def first_step(self):
-        try:
-            self.minefield.get_playing_field()
+    def first_action(self):
+        self.minefield.get_playing_field()
 
-            action = input('Ваш ход: ')
-            if action == 'Меню':
-                return self.menu()
-            X, Y, Action = action.split(',')
-            X, Y = int(X), int(Y)
-            if 1 <= X <= self.minefield.size[0] and 1 <= Y <= self.minefield.size[1]:
-                self.minefield.set_bombs(X - 1, Y - 1)
-                self.minefield.do_act(X - 1, Y - 1, Action)
-            else:
-                print('Вы ввели не корректное значение. Попробуйте снова.')
-                return self.first_step()
-            return self.action()
+        action = self.handler_message(input(UserText.ENTER_MOVE), Context.PLAYER_TURN)
+        if action == 'Меню':
+            return self.menu()
+        X, Y, Action = action
 
-        except ValueError:
-            print('Вы ввели не корректное значение. Попробуйте снова.')
-            return self.first_step()
+        self.minefield.set_bombs(X - 1, Y - 1)
+        self.minefield.bombs_generated = True
+        self.minefield.do_act(X - 1, Y - 1, Action)
+
+        return self.action()
 
     def action(self):
         try:
             while self.is_win(self.minefield.playing_field) != 0:
+
                 self.minefield.get_playing_field()
-                print()
                 self.minefield.get_minefield()
 
-                action = input('Ваш ход: ')
-                if action == 'Меню':
+                action = self.handler_message(input(UserText.ENTER_MOVE), Context.PLAYER_TURN)
+                if action == Menu.MENU:
                     return self.menu()
-                X, Y, Action = action.split(',')
-                X, Y = int(X), int(Y)
-                if 1 <= X <= self.minefield.size[0] and 1 <= Y <= self.minefield.size[1]:
-                    self.minefield.do_act(X - 1, Y - 1, Action)
-                else:
-                    print('Вы ввели не корректное значение. Попробуйте снова.')
-                    return self.action()
+                X, Y, Action = action
+                self.minefield.do_act(X - 1, Y - 1, Action)
+
             return self.win_game()
 
         except ValueError:
-            print('Вы ввели не корректное значение. Попробуйте снова.')
+            print(UserText.ERROR)
             return self.action()
 
     def menu(self):
-        command = input('Выберите действие: \n1. Сохранить игру '
-                        '\n2. Загрузить игру \n3. Начать новую игру \n')
+        command = input(UserText.MENU)
+        if command == Menu.CONTINUE:
+            return self.action()
+        if command == Menu.SAVE_GAME:
+            if not self.minefield.bombs_generated:
+                print(UserText.CANNOT_BE_SAVED)
+                return self.menu()
+            return self.save_game()
+        if command == Menu.LOAD_GAME:
+            return self.load_game()
+        if command == Menu.START_NEW_GAME:
+            return self.new_game()
+        if command == Menu.EXIT:
+            return exit()
 
     def is_win(self, field):
-        return sum([line.count('■') for line in field]) - self.minefield.bombs
+        return sum([line.count('■') for line in field]) - self.minefield.bombs + self.minefield.flags
 
     def win_game(self):
-        command = input('Поздравляем! Вы не подорвались на мине и успешно закончили игру! '
-                        'Чтобы начать новую игру, введите 1,'
-                        'чтобы загрузить игру, введите 2')
-        if command == '1':
-            return self.new_game()
-        elif command == '2':
-            return self.load_game()
+        print(UserText.CONGRATULATIONS)
+        return self.start()
 
     def lose_game(self):
-        command = input('К сожалению, вы подорвались на мине :('
-                        'Чтобы начать новую игру, введите 1,'
-                        'чтобы загрузить игру, введите 2')
-        if command == '1':
-            return self.new_game()
-        elif command == '2':
-            return self.load_game()
+        print(UserText.DEFEAT)
+        return self.start()
+
+    def handler_message(self, string, context):
+        if context in (Context.START_MENU, Context.SELECT_FIELD):
+            while True:
+                if string in ['1', '2', '3']:
+                    return string
+                else:
+                    string = input(UserText.ERROR)
+
+        if context == Context.CHOOSE_SIZES:
+            while True:
+                try:
+                    sizes = [int(size) for size in string.split()]
+                    if 5 <= sizes[0] <= 30 and 5 <= sizes[1] <= 30 and 0 < sizes[2] < sizes[0] * sizes[1]:
+                        return sizes
+                    else:
+                        string = input(UserText.ERROR)
+                except ValueError or IndexError:
+                    string = input(UserText.ERROR)
+
+        if context == Context.PLAYER_TURN:
+            while True:
+                try:
+                    if string == 'Меню':
+                        return string
+                    turn = string.replace(' ', '').split(',')
+                    turn[0], turn[1], turn[2] = int(turn[0]), int(turn[1]), turn[2].upper()
+                    if 1 <= turn[0] <= self.minefield.size[0] and 1 <= turn[1] <= self.minefield.size[1]\
+                            and turn[2] in ['F', 'O']:
+                        return turn
+                    else:
+                        string = input(UserText.ERROR)
+                except ValueError or IndexError:
+                    string = input(UserText.ERROR)
+
+        if context == Context.SELECT_SAVE:
+            while True:
+                try:
+                    saves = list(filter(lambda x: x[:4] == "save", os.listdir()))
+                    number_of_saves = [save[4] for save in saves]
+                    if string in number_of_saves:
+                        return string
+                    else:
+                        string = input(UserText.ERROR)
+
+                except ValueError:
+                    string = input(UserText.ERROR)
 
 
-Game().start()
+
