@@ -137,9 +137,9 @@ class Minefield:
     def set_bombs(self, X, Y):
         for _ in range(self.bombs):
             while True:
-                x = rand.randint(0, 4)
-                y = rand.randint(0, 4)
-                if self.minefield[x][y] == '*' or (x == X and y == Y):
+                x = rand.randint(0, self.size[0] - 1)
+                y = rand.randint(0, self.size[1] - 1)
+                if self.minefield[x][y] == '*' or (x == X and y == Y) or [x, y] in self.gen_coord_neighbors(X, Y):
                     continue
                 self.minefield[x][y] = '*'
                 break
