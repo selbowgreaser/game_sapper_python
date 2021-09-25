@@ -278,7 +278,7 @@ class Game:
                         '\n2. Загрузить игру \n3. Начать новую игру \n')
 
     def is_win(self, field):
-        return sum([line.count('O') for line in field]) - self.minefield.bombs
+        return sum([line.count('■') for line in field]) - self.minefield.bombs
 
     def win_game(self):
         command = input('Поздравляем! Вы не подорвались на мине и успешно закончили игру! '
