@@ -8,7 +8,7 @@ class Minefield:
         self.size = size
         self.bombs = bombs
         self.minefield = [[' ' for _ in range(self.size[1])] for _ in range(self.size[0])]
-        self.playing_field = [[' ' for _ in self.minefield[0]] for _ in self.minefield]
+        self.playing_field = [['■' for _ in self.minefield[0]] for _ in self.minefield]
         self.flags = bombs
         self.queue_coord = deque()
         print('Поле успешно сгенерировано!')
@@ -148,8 +148,8 @@ class Minefield:
 
     def set_flags(self, x, y):
         if self.playing_field[x][y] == 'F':
-            self.playing_field[x][y] = ' '
-        elif self.playing_field[x][y] == ' ':
+            self.playing_field[x][y] = '■'
+        elif self.playing_field[x][y] == '■':
             self.playing_field[x][y] = 'F'
         else:
             print('Нельзя поставить флаг в эту клетку')
@@ -182,7 +182,7 @@ class Minefield:
             print(self.queue_coord)
             while self.queue_coord:
                 x, y = self.queue_coord.popleft()
-                if self.playing_field[x][y] == ' ':
+                if self.playing_field[x][y] == '■':
                     self.check_neighbors(x, y)
                     print(self.queue_coord)
                     print(self.get_playing_field())
