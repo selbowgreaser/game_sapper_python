@@ -1,5 +1,6 @@
 from typing import NamedTuple
 
+
 class Start(NamedTuple):
     START_NEW_GAME = '1'
     LOAD_GAME = '2'
