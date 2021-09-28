@@ -358,7 +358,7 @@ class Game:
                         return sizes
                     else:
                         string = input(UserText.ERROR)
-                except ValueError or IndexError:
+                except (ValueError, IndexError):
                     string = input(UserText.ERROR)
 
         if context == Context.PLAYER_TURN:
@@ -373,7 +373,7 @@ class Game:
                         return turn
                     else:
                         string = input(UserText.ERROR)
-                except ValueError or IndexError:
+                except (ValueError, IndexError):
                     string = input(UserText.ERROR)
 
         if context == Context.SELECT_SAVE:
